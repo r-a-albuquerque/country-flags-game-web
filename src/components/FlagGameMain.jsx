@@ -1,7 +1,7 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { toast } from "react-toastify";
 import http from "../services/httpService"
-import { uniqueRandomArray } from "../services/utils"
+import { uniqueRandomArray, random } from "../services/utils"
 import CountryOption from "./CountryOption"
 
 class FlagGameMain extends Component {
@@ -19,17 +19,22 @@ class FlagGameMain extends Component {
         rightAnswers: 0,
         wrongAnswers: 0,
         timeLeft: this.DEFAULT_TIMER_VALUE,
+
     }
 
     async componentDidMount() {
-        // get all countries from remote API
-        const { data: countries } = await http.getCountries();
-        this.setState({ countries: countries })
+        try {
 
-        this.selectCountries();
+            // get all countries from remote API
+            const { data: countries } = await http.getCountries();
+            this.setState({ countries: countries })
 
-        this.resetTimer()
+            this.selectCountries();
 
+            this.resetTimer()
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     selectCountries = () => {
@@ -55,7 +60,7 @@ class FlagGameMain extends Component {
         // 2. - select a random country to show flag
 
         // 2.1 - random number between 0..4, 
-        const rnd = Math.round(Math.random() * 4);
+        const rnd = random();
 
         // 2.2 - get a single country on selected country list
         const sortedCountry = randomAnswers[rnd]
@@ -86,7 +91,7 @@ class FlagGameMain extends Component {
                 // notify :(
                 toast.error(`Time is over :-(`)
 
-            } else if (timeLeft == 5) {
+            } else if (timeLeft === 5) {
                 // notify :(
                 // toast.warning(`Hurry up!`)
             }
@@ -114,7 +119,7 @@ class FlagGameMain extends Component {
         this.selectCountries();
 
         // call arduino API
-        if (this.ARDUINO)
+        if (process.env.REACT_APP_ARDUINO || false)
             console.log("call arduino API")
     }
 
@@ -124,55 +129,64 @@ class FlagGameMain extends Component {
 
         return (
             <React.Fragment>
-                <div className="card">
-                    <div className="card-body">
-                        <div className="row" id="score">
-                            <div class="card col-sm m-1">
-                                <div class="card-body">
-                                    <h5 class="card-title">Score (right/wrong)</h5>
-                                    <p class="card-text">{rightAnswers} / {wrongAnswers}</p>
-                                </div>
-                            </div>
-                            <div class="card col-sm m-1">
-                                <div class="card-body">
-                                    <h5 class="card-title">Timeleft (seconds)</h5>
-                                    <p class="card-text">{timeLeft}</p>
+                {!sortedCountry && !sortedCountry.flag && (
+                    <div className="alert alert-danger justify-content-center" role="alert">
+                        Something went wrong :-(
+                    </div>
+                )}
+                {sortedCountry && sortedCountry.flag && (
+                    <div>
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="row" id="score">
+                                    <div className="card col-sm m-1">
+                                        <div className="card-body">
+                                            <h5 className="card-title">Score (right/wrong)</h5>
+                                            <p className="card-text">{rightAnswers} / {wrongAnswers}</p>
+                                        </div>
+                                    </div>
+                                    <div className="card col-sm m-1">
+                                        <div className="card-body">
+                                            <h5 className="card-title">Timeleft (seconds)</h5>
+                                            <p className="card-text">{timeLeft}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div className="card mt-2">
-                    <div className="card-body">
-                        <div className="row justify-content-center" id="countryFlag">
-                            <style>{`
+                        <div className="card mt-2">
+                            <div className="card-body">
+                                <div className="row justify-content-center" id="countryFlag">
+                                    <style>{`
                                 div#countryFlags {
                                     border: 1px solid gray;
                                     padding: 5px;
                                     margin-bottom: 5px
                                 }
                             `}</style>
-                            <img src={sortedCountry.flag} style={{ "height": "10rem", "border": "solid black 1px" }}></img>
+                                    <img src={sortedCountry.flag} style={{ "height": "10rem", "border": "solid black 1px" }} alt="flag"></img>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div className="card mt-2">
-                    <div className="card-body">
+                        <div className="card mt-2">
+                            <div className="card-body">
 
-                        <div className="row d-flex justify-content-center" id="countriesOptions">
-                            {randomAnswers.map((country, index) =>
-                                <CountryOption country={country} handleSelect={() => this.onCountrySelect(country)} key={index} />
-                            )}
-                            <style>{`
+                                <div className="row d-flex justify-content-center" id="countriesOptions">
+                                    {randomAnswers.map((country, index) =>
+                                        <CountryOption country={country} handleSelect={() => this.onCountrySelect(country)} key={index} />
+                                    )}
+                                    <style>{`
                             div#countriesOptionss {
                                 border: 1px solid gray;
                                 padding: 5px;
                                 margin-bottom: 5px
                             }
                         `}</style>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </React.Fragment>
         )
     }

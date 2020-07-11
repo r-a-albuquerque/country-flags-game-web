@@ -20,3 +20,7 @@ export function uniqueRandomArray(times, ...args) {
 
     return Array.from(set)
 }
+
+export function random() {
+    return _.random(0, 4)
+}

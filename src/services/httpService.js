@@ -14,12 +14,13 @@ axios.interceptors.response.use(null, error => {
 });
 
 function getCountries() {
-
   try {
-    const getCountriesEndPoint = "https://restcountries.eu/rest/v2/all"
+    const getCountriesEndPoint = process.env.REACT_APP_COUNTRIES_ENDPOINT || "https://restcountries.eu/rest/v2/all";
+
     const result = axios.get(getCountriesEndPoint);
     return result;
   } catch (ex) {
+    console.error(ex)
     if (ex.response && ex.response.status === 404) {
       console.error("An unexpected error occurrred.");
     }
