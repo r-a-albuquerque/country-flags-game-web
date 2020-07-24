@@ -13,11 +13,18 @@ axios.interceptors.response.use(null, error => {
   return Promise.reject(error);
 });
 
-function getCountries() {
+function arduino(rightAnswer) {
   try {
-    const getCountriesEndPoint = process.env.REACT_APP_COUNTRIES_ENDPOINT || "https://restcountries.eu/rest/v2/all";
+    const body = { "rightAnswer": rightAnswer };
 
-    const result = axios.get(getCountriesEndPoint);
+    const arduinoBackendEndpoint = process.env.REACT_APP_API_ARDUINO
+
+    if (null === arduinoBackendEndpoint || arduinoBackendEndpoint == undefined) {
+      throw new Error("API to connect with arduino is not defined")
+    }
+
+    const result = axios.post(arduinoBackendEndpoint, body);
+
     return result;
   } catch (ex) {
     console.error(ex)
@@ -27,10 +34,29 @@ function getCountries() {
   }
 }
 
+function getCountries() {
+  try {
+    const countriesEndpoint = process.env.REACT_APP_API_COUNTRY;
+
+    if (null === countriesEndpoint || countriesEndpoint == undefined) {
+      throw new Error("API to get countries information is not defined")
+    }
+
+    const result = axios.get(countriesEndpoint);
+    return result;
+  } catch (ex) {
+    if (ex.response && ex.response.status === 404) {
+      console.error("An unexpected error occurrred.");
+    }
+    throw ex;
+  }
+}
+
 export default {
   get: axios.get,
   post: axios.post,
   put: axios.put,
   delete: axios.delete,
-  getCountries
+  getCountries,
+  arduino
 };

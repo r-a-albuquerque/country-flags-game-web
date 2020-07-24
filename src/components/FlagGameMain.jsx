@@ -22,7 +22,7 @@ class FlagGameMain extends Component {
 
     }
 
-    async componentDidMount() {
+    componentDidMount = async () => {
         try {
 
             // get all countries from remote API
@@ -33,7 +33,7 @@ class FlagGameMain extends Component {
 
             this.resetTimer()
         } catch (error) {
-            console.error(error)
+            throw error;
         }
     }
 
@@ -99,11 +99,13 @@ class FlagGameMain extends Component {
         }, 1000)
     }
 
-    onCountrySelect = (country) => {
+    onCountrySelect = async (country) => {
         // current sorted country
         const { sortedCountry } = this.state
 
-        if (sortedCountry.name === country.name) {
+        const isTheRightAnswer = sortedCountry.name === country.name ? true : false;
+
+        if (isTheRightAnswer) {
             this.setState({ rightAnswers: this.state.rightAnswers + 1 })
             toast.info(`Well Done! ${country.name} is the right Answer`)
 
@@ -119,8 +121,11 @@ class FlagGameMain extends Component {
         this.selectCountries();
 
         // call arduino API
-        if (process.env.REACT_APP_ARDUINO || false)
-            console.log("call arduino API")
+        if (process.env.REACT_APP_ARDUINO || false) {
+            const { data: result } = await http.arduino(isTheRightAnswer)
+            console.log(`result arduino ${result.code}`)
+
+        }
     }
 
     render() {
@@ -185,6 +190,7 @@ class FlagGameMain extends Component {
                                 </div>
                             </div>
                         </div>
+                        <div className="">Source code available at Github <i className="fa fa-github">:</i></div>
                     </div>
                 )}
             </React.Fragment>

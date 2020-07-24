@@ -7,16 +7,16 @@ import Welcome from "./components/Welcome"
 import FlagGameMain from "./components/FlagGameMain"
 
 
+
 function App() {
   return (
     <main className="container">
-      <React.Fragment>
-        <ToastContainer autoClose={2000} />
-        <Switch>
-          <Route path="/play" component={FlagGameMain}></Route>
-          <Route path="/" component={Welcome}></Route>
-        </Switch>
-      </React.Fragment>
+      <ToastContainer autoClose={2000} />
+      <Switch>
+        <Route path="/play" component={FlagGameMain}></Route>
+        <Route path="/" component={Welcome}></Route>
+      </Switch>
+
     </main>
   );
 }
