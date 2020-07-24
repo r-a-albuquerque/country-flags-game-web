@@ -1,7 +1,23 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Setup application
-### `npm install`
+### Install dependencies
+`npm install`
+
+### define environment properties, creating an .env file on root folder with properties bellow
+
+
+#### set true if an arduno board is available
+`REACT_APP_ARDUINO=true`
+
+#### API address to arduino backend (if already running and REACT_APP_ARDUINO is set to true)
+`REACT_APP_API_ARDUINO=http://localhost:3300/api/arduino`
+
+#### API country endpoint
+`REACT_APP_API_COUNTRY=https://restcountries.eu/rest/v2/all`
+
+`
+
 
 ## Available Scripts
 
