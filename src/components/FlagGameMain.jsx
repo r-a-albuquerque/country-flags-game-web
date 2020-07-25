@@ -190,7 +190,7 @@ class FlagGameMain extends Component {
                                 </div>
                             </div>
                         </div>
-                        <div className="">Source code available at Github <i className="fa fa-github">:</i></div>
+                        <div className="mt-3">Source code available at Github <i className="fa fa-github">:<a href="https://github.com/rarruda-albuquerque/country-flags-game-web" target="_github">https://github.com/rarruda-albuquerque/country-flags-game-web</a></i></div>
                     </div>
                 )}
             </React.Fragment>
