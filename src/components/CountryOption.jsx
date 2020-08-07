@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 class CountryOption extends Component {
-    render() { 
+    render = () => { 
         const {country, handleSelect} = {...this.props};
 
         return (

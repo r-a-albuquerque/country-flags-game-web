@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
 class Welcome extends Component {
-    render() {
+    render = () => {
         return (
             <React.Fragment>
                 <div className="card">
