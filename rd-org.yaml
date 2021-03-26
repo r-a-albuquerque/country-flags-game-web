@@ -1,0 +1,53 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: rd-tech
+  description: RD - RaiaDrogasil
+  links:
+    - url: http://rd.com.br/
+      title: Website
+    - url: https://rd-tech-archs.raiadrogasil.io/
+      title: Intranet
+spec:
+  type: organization
+  profile:
+    displayName: RD - RaiaDrogasil
+    email: info@rd.com.br
+    picture: https://avatars.dicebear.com/api/identicon/info@example.com.svg?background=%23fff&margin=25
+  children: [microservices]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: microservices
+  description: Tribo Microservices
+spec:
+  type: department
+  # Intentional no profile for testing
+  parent: rd-tech
+  children: [ms-order, ms-customer]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: ms-order
+  description: MS Order
+spec:
+  type: team
+  profile:
+    # Intentional no displayName for testing
+    email: squadmsorder@rd.com.br
+    picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
+  parent: microservices
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: halyson
+spec:
+  profile:
+    # Intentional no displayName for testing
+    email: halyson@rd.com.br
+    picture: https://avatars.dicebear.com/api/avataaars/breanna-davison@example.com.svg?background=%23fff
+  memberOf: [ms-order]
