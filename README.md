@@ -14,7 +14,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 `REACT_APP_API_ARDUINO=http://localhost:3300/api/arduino`
 
 #### API country endpoint
-`REACT_APP_API_COUNTRY=https://restcountries.eu/rest/v2/all`
+`REACT_APP_API_COUNTRY=https://restcountries.com/v2/all`
 
 `
 
