@@ -1,20 +1,19 @@
 import React, { Component } from "react";
 import { toast } from "react-toastify";
 import http from "../services/httpService"
-import { uniqueRandomArray, random } from "../services/utils"
+import { pickRandomOptions, formatCountryName } from "../services/utils"
 import CountryOption from "./CountryOption"
 
 class FlagGameMain extends Component {
 
     DEFAULT_TIMER_VALUE = 15;
-    ARDUINO = process.env.ARDUINO || false;
 
-    // store timer function
-    timer = {}
+    timer = null
+    _isMounted = false
 
     state = {
-        countries: {},
-        sortedCountry: {},
+        countries: [],
+        sortedCountry: null,
         randomAnswers: [],
         rightAnswers: 0,
         wrongAnswers: 0,
@@ -22,80 +21,48 @@ class FlagGameMain extends Component {
 
     }
 
-    componentDidMount = async () => {
-        try {
+    // use formatCountryName from utils instead of an inline helper
 
+    componentDidMount = async () => {
+        this._isMounted = true
+        try {
             // get all countries from remote API
             const { data: countries } = await http.getCountries();
-            this.setState({ countries: countries })
-
-            this.selectCountries();
-
-            this.resetTimer()
+            if (!this._isMounted) return
+            this.setState({ countries }, () => {
+                this.selectCountries();
+                this.resetTimer()
+            })
         } catch (error) {
             throw error;
         }
     }
 
     selectCountries = () => {
-
-        // 1 - select 5 countries to show options
-        // 1.1 - get complete country list
         const { countries } = this.state;
+        const { options, selectedIndex } = pickRandomOptions(countries, 5)
 
-        // 1.2 - create an alleatory array to create answer option
-        const randomUniqueArray = uniqueRandomArray(5, 0, countries.length - 1)
+        const sortedCountry = options.length > 0 ? options[selectedIndex] : null
 
-        // 1.3 - create an array with sorted countries
-        let randomAnswers = [];
-        for (let index = 0; index < randomUniqueArray.length; index++) {
-            const country = countries[randomUniqueArray[index]];
-
-            randomAnswers.push(country);
-        }
-
-        // 1.4 - save state
-        this.setState({ randomAnswers: randomAnswers });
-
-        // 2. - select a random country to show flag
-
-        // 2.1 - random number between 0..4, 
-        const rnd = random();
-
-        // 2.2 - get a single country on selected country list
-        const sortedCountry = randomAnswers[rnd]
-
-        // 2.3 - save state
-        this.setState({ sortedCountry: sortedCountry });
-
+        this.setState({ randomAnswers: options, sortedCountry })
     }
 
     // reset timer after time has left or choose an option
     resetTimer = () => {
-        // reset current timer
         clearInterval(this.timer);
         this.setState({ timeLeft: this.DEFAULT_TIMER_VALUE })
 
-        //define a new time
         this.timer = setInterval(() => {
-            let timeLeft = this.state.timeLeft - 1;
-            if (timeLeft === 0) {
-                // reset timer to default value
-                timeLeft = this.DEFAULT_TIMER_VALUE;
-
-                // if time limit is reached, WRONG
-                this.setState({ wrongAnswers: this.state.wrongAnswers + 1 })
-
-                this.selectCountries();
-
-                // notify :(
-                toast.error(`Time is over :-(`)
-
-            } else if (timeLeft === 5) {
-                // notify :(
-                // toast.warning(`Hurry up!`)
-            }
-            this.setState({ timeLeft: timeLeft })
+            this.setState(prev => {
+                let nextTime = prev.timeLeft - 1
+                if (nextTime === 0) {
+                    nextTime = this.DEFAULT_TIMER_VALUE
+                    toast.error(`Time is over :-(`)
+                    this.selectCountries()
+                    return { timeLeft: nextTime, wrongAnswers: prev.wrongAnswers + 1 }
+                }
+                return { timeLeft: nextTime }
+            })
         }, 1000)
     }
 
@@ -103,15 +70,18 @@ class FlagGameMain extends Component {
         // current sorted country
         const { sortedCountry } = this.state
 
-        const isTheRightAnswer = sortedCountry.name === country.name ? true : false;
+        const sortedCountryName = formatCountryName(sortedCountry)
+        const selectedCountryName = formatCountryName(country)
+
+        const isTheRightAnswer = sortedCountryName === selectedCountryName
 
         if (isTheRightAnswer) {
-            this.setState({ rightAnswers: this.state.rightAnswers + 1 })
-            toast.info(`Well Done! ${country.name} is the right Answer`)
+            this.setState(prev => ({ rightAnswers: prev.rightAnswers + 1 }))
+            toast.info(`Well Done! ${selectedCountryName} is the right Answer`)
 
         } else {
-            this.setState({ wrongAnswers: this.state.wrongAnswers + 1 })
-            toast.error(`Wrong Answer :-(. The correct one was ${sortedCountry.name} `)
+            this.setState(prev => ({ wrongAnswers: prev.wrongAnswers + 1 }))
+            toast.error(`Wrong Answer :-(. The correct one was ${sortedCountryName} `)
         }
 
         // reset timer
@@ -134,12 +104,12 @@ class FlagGameMain extends Component {
 
         return (
             <React.Fragment>
-                {!sortedCountry && !sortedCountry.flag && (
+                {!sortedCountry || !sortedCountry.flags || !sortedCountry.flags.png ? (
                     <div className="alert alert-danger justify-content-center" role="alert">
                         Something went wrong :-(
                     </div>
-                )}
-                {sortedCountry && sortedCountry.flag && (
+                ) : null}
+                {sortedCountry && sortedCountry.flags && (
                     <div>
                         <div className="card">
                             <div className="card-body">
@@ -169,7 +139,7 @@ class FlagGameMain extends Component {
                                     margin-bottom: 5px
                                 }
                             `}</style>
-                                    <img src={sortedCountry.flag} style={{ "height": "10rem", "border": "solid black 1px" }} alt="flag"></img>
+                                    <img src={sortedCountry.flags.png} style={{ "height": "10rem", "border": "solid black 1px" }} alt="flag"></img>
                                 </div>
                             </div>
                         </div>
@@ -178,7 +148,7 @@ class FlagGameMain extends Component {
 
                                 <div className="row d-flex justify-content-center" id="countriesOptions">
                                     {randomAnswers.map((country, index) =>
-                                        <CountryOption country={country} handleSelect={() => this.onCountrySelect(country)} key={index} />
+                                        <CountryOption country={country} handleSelect={() => this.onCountrySelect(country)} key={country.id || index} />
                                     )}
                                     <style>{`
                             div#countriesOptionss {
